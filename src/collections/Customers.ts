@@ -1,6 +1,7 @@
-import type { Access, CollectionConfig } from 'payload'
+import type { Access, CollectionConfig, FieldAccess } from 'payload'
 
 const isAdmin: Access = ({ req }) => req.user?.collection === 'admins'
+const isAdminField: FieldAccess = ({ req }) => req.user?.collection === 'admins'
 const isSelfOrAdmin: Access = ({ req }) => {
   if (req.user?.collection === 'admins') return true
   if (req.user?.collection === 'customers') return { id: { equals: req.user.id } }
@@ -41,7 +42,7 @@ export const Customers: CollectionConfig = {
       min: 0,
       defaultValue: 0,
       admin: { readOnly: true },
-      access: { update: isAdmin },
+      access: { update: isAdminField },
     },
     {
       name: 'totalSpent',
@@ -50,13 +51,13 @@ export const Customers: CollectionConfig = {
       min: 0,
       defaultValue: 0,
       admin: { readOnly: true },
-      access: { update: isAdmin },
+      access: { update: isAdminField },
     },
     {
       name: 'internalNotes',
       label: 'Notas internas',
       type: 'textarea',
-      access: { read: isAdmin, update: isAdmin },
+      access: { read: isAdminField, update: isAdminField },
     },
   ],
 }

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
 type Product = {
-  id: string
+  id: number
   name: string
   sku: string
   category: string
@@ -13,7 +13,7 @@ type Product = {
 }
 type Address = { label?: string | null; line1: string; city: string }
 type Customer = {
-  id: string
+  id: number
   name: string
   phone?: string | null
   addresses?: Address[] | null
@@ -23,9 +23,9 @@ type Customer = {
 }
 type OrderItem = { productName: string; size: string; quantity: number }
 type Order = {
-  id: string
-  orderNumber: string
-  customer: string | Customer
+  id: number
+  orderNumber?: string | null
+  customer: number | Customer
   items: OrderItem[]
   total: number
   status: string
@@ -323,7 +323,7 @@ export function OwnerPanel({
                   {initialOrders
                     .filter(
                       (order) =>
-                        typeof order.customer !== 'string' &&
+                        typeof order.customer === 'object' &&
                         order.customer.id === selectedCustomer.id,
                     )
                     .map((order) => (

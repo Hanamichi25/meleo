@@ -60,22 +60,11 @@ export type SupportedTimezones =
   | 'Pacific/Noumea'
   | 'Pacific/Auckland'
   | 'Pacific/Fiji';
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "LexicalNodes_3DE324E4".
- */
-export type LexicalNodes_3DE324E4 =
-  | SerializedTextNode
-  | SerializedTabNode
-  | SerializedLineBreakNode
-  | SerializedParagraphNode<LexicalNodes_3DE324E4>
-  | SerializedListNode<LexicalNodes_3DE324E4>
-  | SerializedListItemNode<LexicalNodes_3DE324E4>
-  | SerializedHeadingNode<LexicalNodes_3DE324E4, 'h2' | 'h3' | 'h4'>;
 
 export interface Config {
   auth: {
     admins: AdminAuthOperations;
+    customers: CustomerAuthOperations;
   };
   blocks: {};
   collections: {
@@ -85,6 +74,7 @@ export interface Config {
     tags: Tag;
     products: Product;
     customers: Customer;
+    carts: Cart;
     orders: Order;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -100,6 +90,7 @@ export interface Config {
     tags: TagsSelect<false> | TagsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
+    carts: CartsSelect<false> | CartsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -108,7 +99,7 @@ export interface Config {
     'payload-llm-instructions': PayloadLlmInstructionsSelect<false> | PayloadLlmInstructionsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | 'en' | 'en'[];
   globals: {};
@@ -121,7 +112,7 @@ export interface Config {
     activity: ActivityWidget;
     'upload-dropzone': UploadDropzoneWidget;
   };
-  user: Admin;
+  user: Admin | Customer;
   jobs: {
     tasks: unknown;
     workflows: unknown;
@@ -145,48 +136,160 @@ export interface AdminAuthOperations {
     password: string;
   };
 }
+export interface CustomerAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
+  };
+}
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "admins".
  */
 export interface Admin {
-  id: string;
-  figmaHandle?: string | null;
-  figmaImageUrl?: string | null;
-  userGroups?: string[] | null;
-  makePermission?: ('view' | 'edit') | null;
-  email?: string | null;
-  createdBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
+  id: number;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
   updatedAt: string;
   createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
   collection: 'admins';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers".
+ */
+export interface Customer {
+  id: number;
+  name: string;
+  phone?: string | null;
+  addresses?:
+    | {
+        /**
+         * Ej: Casa, Oficina
+         */
+        label?: string | null;
+        line1: string;
+        line2?: string | null;
+        city: string;
+        department: string;
+        phone: string;
+        id?: string | null;
+      }[]
+    | null;
+  orderCount?: number | null;
+  totalSpent?: number | null;
+  internalNotes?: string | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'customers';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
+  id: number;
   alt: string;
-  _h_folders?: (string | null) | Folder;
-  _h_tags?: (string | Tag)[] | null;
+  _h_folders?: (number | null) | Folder;
+  _h_tags?: (number | Tag)[] | null;
   prefix?: string | null;
   _objectKey?: string | null;
-  createdBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -214,17 +317,27 @@ export interface Media {
  * via the `definition` "folders".
  */
 export interface Folder {
-  id: string;
-  _h_folders?: (string | null) | Folder;
+  id: number;
+  _h_folders?: (number | null) | Folder;
   name: string;
-  createdBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
   updatedAt: string;
   createdAt: string;
   _h_slugPath?: string | null;
@@ -235,17 +348,27 @@ export interface Folder {
  * via the `definition` "tags".
  */
 export interface Tag {
-  id: string;
-  _h_tags?: (string | null) | Tag;
+  id: number;
+  _h_tags?: (number | null) | Tag;
   name: string;
-  createdBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
   updatedAt: string;
   createdAt: string;
   _h_slugPath?: string | null;
@@ -258,7 +381,7 @@ export interface Tag {
  * via the `definition` "products".
  */
 export interface Product {
-  id: string;
+  id: number;
   /**
    * Ejemplo: Hoodie Flow 01
    */
@@ -283,7 +406,7 @@ export interface Product {
   /**
    * Sube una fotografía vertical de la prenda o selecciónala de la biblioteca.
    */
-  image?: (string | null) | Media;
+  image?: (number | null) | Media;
   stock: {
     s: number;
     m: number;
@@ -291,38 +414,61 @@ export interface Product {
     xl: number;
   };
   stockTotal?: number | null;
-  createdBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
   updatedAt: string;
   createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "customers".
+ * via the `definition` "carts".
  */
-export interface Customer {
-  id: string;
-  name: string;
-  city: string;
-  phone?: string | null;
-  orderCount?: number | null;
-  totalSpent?: number | null;
-  internalNotes?: string | null;
-  isExample?: boolean | null;
-  createdBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
+export interface Cart {
+  id: number;
+  customer: number | Customer;
+  items?:
+    | {
+        product: number | Product;
+        size: 'S' | 'M' | 'L' | 'XL';
+        quantity: number;
+        id?: string | null;
+      }[]
+    | null;
+  status: 'abierto' | 'convertido' | 'abandonado';
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
   updatedAt: string;
   createdAt: string;
 }
@@ -331,22 +477,61 @@ export interface Customer {
  * via the `definition` "orders".
  */
 export interface Order {
-  id: string;
-  orderNumber: string;
-  customer: string | Customer;
-  date: string;
+  id: number;
+  orderNumber?: string | null;
+  customer: number | Customer;
+  items: {
+    product: number | Product;
+    productName: string;
+    size: 'S' | 'M' | 'L' | 'XL';
+    quantity: number;
+    unitPrice: number;
+    id?: string | null;
+  }[];
+  shippingAddress: {
+    line1: string;
+    line2?: string | null;
+    city: string;
+    department: string;
+    phone: string;
+  };
+  subtotal: number;
+  shippingCost: number;
   total: number;
-  status: 'Recibido' | 'En preparación' | 'Enviado' | 'Entregado';
-  itemsSummary: string;
-  isExample?: boolean | null;
-  createdBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
+  status: 'pendiente_pago' | 'pagado' | 'en_preparacion' | 'enviado' | 'entregado' | 'cancelado';
+  payment?: {
+    provider?: string | null;
+    wompiTransactionId?: string | null;
+    wompiReference?: string | null;
+    status?: ('pendiente' | 'aprobado' | 'declinado') | null;
+    rawWebhookPayload?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
   updatedAt: string;
   createdAt: string;
 }
@@ -355,7 +540,7 @@ export interface Order {
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -372,41 +557,50 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'admins';
-        value: string | Admin;
+        value: number | Admin;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
       } | null)
     | ({
         relationTo: 'folders';
-        value: string | Folder;
+        value: number | Folder;
       } | null)
     | ({
         relationTo: 'tags';
-        value: string | Tag;
+        value: number | Tag;
       } | null)
     | ({
         relationTo: 'products';
-        value: string | Product;
+        value: number | Product;
       } | null)
     | ({
         relationTo: 'customers';
-        value: string | Customer;
+        value: number | Customer;
+      } | null)
+    | ({
+        relationTo: 'carts';
+        value: number | Cart;
       } | null)
     | ({
         relationTo: 'orders';
-        value: string | Order;
+        value: number | Order;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'admins';
-    value: string | Admin;
-  };
+  user:
+    | {
+        relationTo: 'admins';
+        value: number | Admin;
+      }
+    | {
+        relationTo: 'customers';
+        value: number | Customer;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -415,11 +609,16 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
-  user: {
-    relationTo: 'admins';
-    value: string | Admin;
-  };
+  id: number;
+  user:
+    | {
+        relationTo: 'admins';
+        value: number | Admin;
+      }
+    | {
+        relationTo: 'customers';
+        value: number | Customer;
+      };
   key?: string | null;
   value?:
     | {
@@ -438,7 +637,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -453,16 +652,26 @@ export interface PayloadLlmInstruction {
   entitySlug: string;
   title?: string | null;
   entityType: 'collection' | 'global';
-  additionalInstructions?: LexicalRichText<LexicalNodes_3DE324E4> | null;
-  systemInstructions?: LexicalRichText<LexicalNodes_3DE324E4> | null;
-  createdBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: string | Admin;
-  } | null;
+  additionalInstructions?: string | null;
+  systemInstructions?: string | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
   updatedAt: string;
   createdAt: string;
 }
@@ -471,15 +680,25 @@ export interface PayloadLlmInstruction {
  * via the `definition` "admins_select".
  */
 export interface AdminsSelect<T extends boolean = true> {
-  figmaHandle?: T;
-  figmaImageUrl?: T;
-  userGroups?: T;
-  makePermission?: T;
-  email?: T;
   createdBy?: T;
   updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  resetPasswordRequestedAt?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -577,12 +796,56 @@ export interface ProductsSelect<T extends boolean = true> {
  */
 export interface CustomersSelect<T extends boolean = true> {
   name?: T;
-  city?: T;
   phone?: T;
+  addresses?:
+    | T
+    | {
+        label?: T;
+        line1?: T;
+        line2?: T;
+        city?: T;
+        department?: T;
+        phone?: T;
+        id?: T;
+      };
   orderCount?: T;
   totalSpent?: T;
   internalNotes?: T;
-  isExample?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  resetPasswordRequestedAt?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "carts_select".
+ */
+export interface CartsSelect<T extends boolean = true> {
+  customer?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        size?: T;
+        quantity?: T;
+        id?: T;
+      };
+  status?: T;
   createdBy?: T;
   updatedBy?: T;
   updatedAt?: T;
@@ -595,11 +858,38 @@ export interface CustomersSelect<T extends boolean = true> {
 export interface OrdersSelect<T extends boolean = true> {
   orderNumber?: T;
   customer?: T;
-  date?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        productName?: T;
+        size?: T;
+        quantity?: T;
+        unitPrice?: T;
+        id?: T;
+      };
+  shippingAddress?:
+    | T
+    | {
+        line1?: T;
+        line2?: T;
+        city?: T;
+        department?: T;
+        phone?: T;
+      };
+  subtotal?: T;
+  shippingCost?: T;
   total?: T;
   status?: T;
-  itemsSummary?: T;
-  isExample?: T;
+  payment?:
+    | T
+    | {
+        provider?: T;
+        wompiTransactionId?: T;
+        wompiReference?: T;
+        status?: T;
+        rawWebhookPayload?: T;
+      };
   createdBy?: T;
   updatedBy?: T;
   updatedAt?: T;
@@ -688,7 +978,7 @@ export interface CollectionsWidget {
 export interface CollectionQueryWidget {
   data?: {
     title?: string | null;
-    relatedCollection: 'admins' | 'media' | 'folders' | 'tags' | 'products' | 'customers' | 'orders';
+    relatedCollection: 'admins' | 'media' | 'folders' | 'tags' | 'products' | 'customers' | 'carts' | 'orders';
     where?:
       | {
           [k: string]: unknown;
@@ -710,7 +1000,8 @@ export interface CollectionQueryWidget {
  */
 export interface ActivityWidget {
   data?: {
-    excludedCollections?: ('admins' | 'media' | 'folders' | 'tags' | 'products' | 'customers' | 'orders')[] | null;
+    excludedCollections?:
+      ('admins' | 'media' | 'folders' | 'tags' | 'products' | 'customers' | 'carts' | 'orders')[] | null;
   };
   width: 'small' | 'medium' | 'large' | 'x-large' | 'full';
 }
@@ -730,92 +1021,6 @@ export interface UploadDropzoneWidget {
  */
 export interface Auth {
   [k: string]: unknown;
-}
-
-/** @internal Core Lexical types — see @payloadcms/richtext-lexical. */
-export type LexicalElementFormat = 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-export type LexicalElementDirection = ('ltr' | 'rtl') | null;
-
-export interface SerializedLexicalElementBase<TChildren> {
-  children: TChildren[];
-  direction: LexicalElementDirection;
-  format: LexicalElementFormat;
-  indent: number;
-  textFormat?: number;
-  textStyle?: string;
-  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
-  version: number;
-}
-
-export type LexicalTextMode = 'normal' | 'token' | 'segmented';
-
-export interface SerializedTextNode {
-  type: 'text';
-  detail: number;
-  format: number;
-  mode: LexicalTextMode;
-  style: string;
-  text: string;
-  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
-  version: number;
-}
-
-export interface SerializedTabNode {
-  type: 'tab';
-  detail: number;
-  format: number;
-  mode: LexicalTextMode;
-  style: string;
-  text: string;
-  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
-  version: number;
-}
-
-export interface SerializedLineBreakNode {
-  type: 'linebreak';
-  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
-  version: number;
-}
-
-export interface SerializedParagraphNode<TChildren> extends SerializedLexicalElementBase<TChildren> {
-  type: 'paragraph';
-  textFormat: number;
-  textStyle: string;
-}
-
-export interface SerializedListNode<TChildren> extends SerializedLexicalElementBase<TChildren> {
-  type: 'list';
-  checked?: boolean;
-  listType: 'number' | 'bullet' | 'check';
-  start: number;
-  tag: 'ul' | 'ol';
-}
-
-export interface SerializedListItemNode<TChildren> extends SerializedLexicalElementBase<TChildren> {
-  type: 'listitem';
-  checked?: boolean;
-  value: number;
-}
-
-export interface SerializedHeadingNode<
-  TChildren,
-  TTag extends 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6',
-> extends SerializedLexicalElementBase<TChildren> {
-  type: 'heading';
-  tag: TTag;
-}
-
-/** Shape of a Lexical `richText` field. */
-export interface LexicalRichText<TNode> {
-  root: {
-    children: TNode[];
-    direction: LexicalElementDirection;
-    format: LexicalElementFormat;
-    indent: number;
-    type: 'root';
-    /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
-    version: number;
-  };
 }
 
 

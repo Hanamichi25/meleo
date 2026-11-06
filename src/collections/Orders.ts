@@ -1,7 +1,8 @@
-import type { Access, CollectionConfig } from 'payload'
+import type { Access, CollectionConfig, FieldAccess } from 'payload'
 import { APIError } from 'payload'
 
 const isAdmin: Access = ({ req }) => req.user?.collection === 'admins'
+const isAdminField: FieldAccess = ({ req }) => req.user?.collection === 'admins'
 const isOwnerOrAdmin: Access = ({ req }) => {
   if (req.user?.collection === 'admins') return true
   if (req.user?.collection === 'customers') return { customer: { equals: req.user.id } }
@@ -105,7 +106,7 @@ export const Orders: CollectionConfig = {
           name: 'rawWebhookPayload',
           label: 'Payload del webhook (crudo)',
           type: 'json',
-          access: { read: isAdmin, update: isAdmin },
+          access: { read: isAdminField, update: isAdminField },
           admin: { readOnly: true },
         },
       ],

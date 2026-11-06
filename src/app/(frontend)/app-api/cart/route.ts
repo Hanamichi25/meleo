@@ -3,9 +3,9 @@ import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 
-type CartItemInput = { product: string; size: 'S' | 'M' | 'L' | 'XL'; quantity: number }
+type CartItemInput = { product: number; size: 'S' | 'M' | 'L' | 'XL'; quantity: number }
 
-async function getOrCreateOpenCart(payload: Awaited<ReturnType<typeof getPayload>>, customerId: string) {
+async function getOrCreateOpenCart(payload: Awaited<ReturnType<typeof getPayload>>, customerId: number) {
   const existing = await payload.find({
     collection: 'carts',
     where: { customer: { equals: customerId }, status: { equals: 'abierto' } },

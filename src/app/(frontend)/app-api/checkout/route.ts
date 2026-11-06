@@ -38,13 +38,14 @@ export async function POST(request: Request) {
     user: auth.user,
   })
   const cart = cartResult.docs[0]
-  if (!cart || cart.items.length === 0) {
+  const cartItems = cart?.items ?? []
+  if (cartItems.length === 0) {
     return NextResponse.json({ error: 'Tu carrito está vacío.' }, { status: 400 })
   }
 
   // Nunca confiar en precios que mande el cliente: se releen desde Products en el servidor.
   const items = await Promise.all(
-    cart.items.map(async (item) => {
+    cartItems.map(async (item) => {
       const product =
         typeof item.product === 'object' ? item.product : await payload.findByID({ collection: 'products', id: item.product })
       return {
@@ -87,7 +88,8 @@ export async function POST(request: Request) {
 
   await payload.update({
     collection: 'carts',
-    id: cart.id,
+    // cart is guaranteed defined here: cartItems.length === 0 already returned above when cart is undefined.
+    id: cart!.id,
     overrideAccess: true,
     data: { status: 'convertido' },
   })

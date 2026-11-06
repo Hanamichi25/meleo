@@ -1,18 +1,21 @@
-import type { Access, CollectionConfig } from 'payload'
+import type { Access, CollectionConfig, FieldAccess } from 'payload'
 
 const isAdmin: Access = ({ req }) => req.user?.collection === 'admins'
+const isAdminField: FieldAccess = ({ req }) => req.user?.collection === 'admins'
 const isOwnerOrAdmin: Access = ({ req }) => {
   if (req.user?.collection === 'admins') return true
   if (req.user?.collection === 'customers') return { customer: { equals: req.user.id } }
   return false
 }
+const canCreate: Access = ({ req }) =>
+  req.user?.collection === 'customers' || req.user?.collection === 'admins'
 
 export const Carts: CollectionConfig = {
   slug: 'carts',
   labels: { singular: 'Carrito', plural: 'Carritos' },
   admin: { group: 'Meleo', useAsTitle: 'id' },
   access: {
-    create: ({ req }) => Boolean(req.user?.collection === 'customers') || isAdmin({ req } as never),
+    create: canCreate,
     read: isOwnerOrAdmin,
     update: isOwnerOrAdmin,
     delete: isAdmin,
@@ -43,7 +46,7 @@ export const Carts: CollectionConfig = {
       defaultValue: 'abierto',
       options: ['abierto', 'convertido', 'abandonado'],
       admin: { readOnly: true },
-      access: { update: isAdmin },
+      access: { update: isAdminField },
     },
   ],
 }
