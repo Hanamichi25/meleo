@@ -63,10 +63,7 @@ function Icon({ name }: { name: 'arrow' | 'bag' | 'plus' }) {
 
 function Logo() {
   return (
-    <span className="brand-logo" aria-label="Meleo">
-      <span className="brand-crown" aria-hidden="true" />
-      meleo
-    </span>
+    <Image className="brand-logo" src="/meleo-logo.png" alt="Meleo" width={48} height={48} priority />
   )
 }
 
